@@ -15,7 +15,7 @@ func main() {
 	searchMusicTitle := scanner.Text()
 
 	// Search the best matches for the music title
-	musicScoreInfo := music.SearchMusic(searchMusicTitle)
+	musicScoreInfo := music.SearchMusic(searchMusicTitle, 10)
 
 	fmt.Println("# Resposta:")
 	for _, musicInfo := range musicScoreInfo {

@@ -3,7 +3,6 @@ package score
 import (
 	"desafio_letras2021/usecases/comparator"
 	"errors"
-	"fmt"
 	"strings"
 )
 
@@ -51,7 +50,7 @@ func MeasureTotalScore(searchTitle string, musicTitle string) (int, error) {
 	for _, word := range sliceMusicTitle {
 		for _, titleWord := range sliceSearchTitle {
 
-			fmt.Println(strings.Count(titleWord, ""), titleWord, word)
+			// fmt.Println(strings.Count(titleWord, ""), titleWord, word)
 			result := comparator.Insensitive(titleWord, word)
 			if result == true {
 				// Update score based on the value when the word from the search
@@ -69,19 +68,9 @@ func MeasureTotalScore(searchTitle string, musicTitle string) (int, error) {
 				var firstWord, secondWord string
 
 				if len(titleWord) > len(word) {
-					// scoreWord, err := measureWordScore(word, titleWord)
-					// if err != nil {
-					// 	return score, err
-					// }
-					// score += scoreWord
 					firstWord = word
 					secondWord = titleWord
 				} else {
-					// scoreWord, err := measureWordScore(titleWord, word)
-					// if err != nil {
-					// 	return score, err
-					// }
-					// score += scoreWord
 					firstWord = titleWord
 					secondWord = word
 				}

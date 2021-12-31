@@ -9,7 +9,7 @@ import (
 
 type sortMusicSlice []entity.MusicInfo
 
-func SearchMusic(title string) sortMusicSlice {
+func SearchMusic(title string, bestReturns int) sortMusicSlice {
 
 	// Until now, this simulates a search in the database
 	// dbMusic := []string{"Havana (feat) Young Thug"}
@@ -44,7 +44,10 @@ func SearchMusic(title string) sortMusicSlice {
 		"Paraíso (part. Pabllo Vittar)", "Vem Pra Minha Vida",
 	}
 
-	musicNameSort := make(sortMusicSlice, len(dbMusic))
+	musicNameSort := make(sortMusicSlice, bestReturns+1)
+	for i := 0; i < len(musicNameSort); i++ {
+		musicNameSort[i].Score = -100
+	}
 
 	// Treat music title for search
 	treatedTitle, err := treatment.TreatString(title)
@@ -52,7 +55,7 @@ func SearchMusic(title string) sortMusicSlice {
 		return sortMusicSlice{}
 	}
 
-	for i, musicName := range dbMusic {
+	for _, musicName := range dbMusic {
 
 		// Treat the music title name from the database to measure the score;
 		treatedMusicName, err := treatment.TreatString(musicName)
@@ -67,20 +70,20 @@ func SearchMusic(title string) sortMusicSlice {
 			return []entity.MusicInfo{}
 		}
 
-		musicNameSort[i].Name = musicName
-		musicNameSort[i].Score = score
+		musicNameSort[bestReturns].Name = musicName
+		musicNameSort[bestReturns].Score = score
+
+		// fmt.Println("pre-sort:", musicNameSort)
+
+		// Sort the slice based on the descending order of the score and when the
+		// score is the same using the alphabetical order.
+		sort.Sort(musicNameSort)
+
+		// fmt.Println("pos-sort:", musicNameSort)
 
 		// fmt.Println("Score:", score)
 
 	}
-
-	// fmt.Println("pre-sort:", musicNameSort)
-
-	// Sort the slice based on the descending order of the score and when the
-	// score is the same using the alphabetical order.
-	sort.Sort(musicNameSort)
-
-	// fmt.Println("pos-sort:", musicNameSort)
 
 	return musicNameSort[0:10]
 }
