@@ -4,7 +4,6 @@ import (
 	"desafio_letras2021/entity"
 	"desafio_letras2021/usecases/score"
 	"desafio_letras2021/usecases/treatment"
-	"fmt"
 	"sort"
 )
 
@@ -48,11 +47,21 @@ func SearchMusic(title string) sortMusicSlice {
 	musicNameSort := make(sortMusicSlice, len(dbMusic))
 
 	// Treat music title for search
-	treatedTitle := treatment.TreatString(title)
+	treatedTitle, err := treatment.TreatString(title)
+	if err != nil {
+		return sortMusicSlice{}
+	}
 
 	for i, musicName := range dbMusic {
-		fmt.Println(musicName)
-		treatedMusicName := treatment.TreatString(musicName)
+
+		// Treat the music title name from the database to measure the score;
+		treatedMusicName, err := treatment.TreatString(musicName)
+		if err != nil {
+			return []entity.MusicInfo{}
+		}
+
+		// Measure the score for the treated title based on the treated music
+		// name obtained from the database.
 		score, err := score.MeasureTotalScore(treatedTitle, treatedMusicName)
 		if err != nil {
 			return []entity.MusicInfo{}
@@ -61,27 +70,44 @@ func SearchMusic(title string) sortMusicSlice {
 		musicNameSort[i].Name = musicName
 		musicNameSort[i].Score = score
 
-		fmt.Println("Score:", score)
+		// fmt.Println("Score:", score)
 
 	}
 
-	fmt.Println("pre-sort:", musicNameSort)
+	// fmt.Println("pre-sort:", musicNameSort)
 
+	// Sort the slice based on the descending order of the score and when the
+	// score is the same using the alphabetical order.
 	sort.Sort(musicNameSort)
-	fmt.Println()
-	fmt.Println("pos-sort:", musicNameSort)
+
+	// fmt.Println("pos-sort:", musicNameSort)
 
 	return musicNameSort[0:10]
 }
 
+// Use the optimum sorting algorithm available on Golang. It uses an algorithm that
+// has a O(n log(n)) in the worst case scenario. In Golang, this can be done
+// using the interface for the sort.Sort() function. This function needs the Len()
+// method which basically measures the slice length for the sort algorithm.
 func (ms sortMusicSlice) Len() int {
 	return len(ms)
 }
 
+// This method is part of the ms object. It is necessary for the sort.Interface.
+// In our case, as we want a descending sort and when the Score in the "i" and "j"
+// has the same valeu we want to sort based on the alphabetical order, then, this
+// method will return true only when the score from the "i" is higher than the "j"
+// or when the Name from "i" is alphabetically lower than the name from "j" since
+// the score are the same for both.
 func (ms sortMusicSlice) Less(i, j int) bool {
-	return ms[i].Score > ms[j].Score || (ms[i].Score == ms[j].Score && ms[i].Name < ms[j].Name)
+	return ms[i].Score > ms[j].Score || (ms[i].Score == ms[j].Score &&
+		ms[i].Name < ms[j].Name)
 }
 
+// This method is part of the ms object. It is necessary for the sort.Interface.
+// This Swap function has the purpose to switch the i-th and j-th from the slice
+// when the conditions for swap is valid, which happens when the Less method
+// returns true.
 func (ms sortMusicSlice) Swap(i, j int) {
 	ms[i], ms[j] = ms[j], ms[i]
 }

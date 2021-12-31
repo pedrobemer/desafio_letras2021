@@ -6,8 +6,6 @@ import (
 
 	"fmt"
 	"os"
-
-	"golang.org/x/text/unicode/norm"
 )
 
 func main() {
@@ -16,11 +14,8 @@ func main() {
 	scanner.Scan()
 	searchMusicTitle := scanner.Text()
 
-	fmt.Println(norm.NFD)
-
-	// Escreva a solução aqui
+	// Search the best matches for the music title
 	musicScoreInfo := music.SearchMusic(searchMusicTitle)
-	// response := searchMusicTitle
 
 	fmt.Println("# Resposta:")
 	for _, musicInfo := range musicScoreInfo {

@@ -18,13 +18,13 @@ func measureWordScore(firstWord string, secondWord string) (int, error) {
 		return 0, errors.New("firstWord is greater than secondWord")
 	}
 
-	fmt.Println(firstWord, secondWord)
+	// fmt.Println(firstWord, secondWord)
 	for i, character := range firstWord {
 		if character == rune(secondWord[i]) {
 			scoreWord += 1
 		}
 	}
-	fmt.Println(scoreWord)
+	// fmt.Println(scoreWord)
 
 	return scoreWord, nil
 }
@@ -38,6 +38,8 @@ func MeasureTotalScore(searchTitle string, musicTitle string) (int, error) {
 	sliceMusicTitle := strings.Fields(musicTitle)
 	sliceSearchTitle := strings.Fields(searchTitle)
 
+	// By default when the sliceMusicTitle has a feat word, the score initializes
+	// automatically with -5 value.
 	for _, word := range sliceMusicTitle {
 		if word == "feat" {
 			featExist = true
@@ -57,24 +59,38 @@ func MeasureTotalScore(searchTitle string, musicTitle string) (int, error) {
 				// the score based on the number of caracterers in the titleWord.
 				score += 10 + strings.Count(titleWord, "") - 1
 
+				// Add 5 when the sliceSearchTitle and the sliceMusicTitle has
+				// the "feat" word.
 				if titleWord == "feat" && featExist == true {
 					score += 5
 				}
 
 			} else {
+				var firstWord, secondWord string
+
 				if len(titleWord) > len(word) {
-					scoreWord, err := measureWordScore(word, titleWord)
-					if err != nil {
-						return score, err
-					}
-					score += scoreWord
+					// scoreWord, err := measureWordScore(word, titleWord)
+					// if err != nil {
+					// 	return score, err
+					// }
+					// score += scoreWord
+					firstWord = word
+					secondWord = titleWord
 				} else {
-					scoreWord, err := measureWordScore(titleWord, word)
-					if err != nil {
-						return score, err
-					}
-					score += scoreWord
+					// scoreWord, err := measureWordScore(titleWord, word)
+					// if err != nil {
+					// 	return score, err
+					// }
+					// score += scoreWord
+					firstWord = titleWord
+					secondWord = word
 				}
+
+				scoreWord, err := measureWordScore(firstWord, secondWord)
+				if err != nil {
+					return score, err
+				}
+				score += scoreWord
 			}
 		}
 

@@ -11,7 +11,7 @@ import (
 
 // Responsible for removing all accents of a given text and to lower case all
 // caracterers from the same text.
-func TreatString(text string) string {
+func TreatString(text string) (string, error) {
 
 	// Convert caracters from the text to lower case
 	textLowerCased := strings.ToLower(text)
@@ -20,8 +20,8 @@ func TreatString(text string) string {
 	t := transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
 	treatedString, _, err := transform.String(t, textLowerCased)
 	if err != nil {
-		panic(err)
+		return "", err
 	}
 
-	return treatedString
+	return treatedString, nil
 }
