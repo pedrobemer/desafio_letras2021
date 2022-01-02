@@ -7,43 +7,32 @@ import (
 	"sort"
 )
 
+type Application struct {
+	repo Repository
+}
+
+//NewApplication create new use case
+func NewApplication(r Repository) *Application {
+	return &Application{
+		repo: r,
+	}
+}
+
 type sortMusicSlice []entity.MusicInfo
 
-func SearchMusic(title string, bestReturns int) sortMusicSlice {
+// Application that Search the best musics title in our database based on the
+// "title" parameter. In this case the return is a slice with a length equal to
+// "bestReturns"""
+func (a *Application) SearchMusic(title string, bestReturns int) sortMusicSlice {
 
-	// Until now, this simulates a search in the database
-	// dbMusic := []string{"Havana (feat) Young Thug"}
-	dbMusic := []string{"Que Tiro Foi Esse", "Deixe-me Ir",
-		"Sobre Nós (Poesia Acústica #2)", "Apelido Carinhoso", "Tô Com Moral No Céu",
-		"Lugar Secreto", "Jó", "Perfect", "Fica Tranquilo",
-		"Capricorniana (Poesia Acústica #3)", "Amor da Sua Cama", "Nessas Horas",
-		"Downtown (part. J Balvin)", "Você Vai Entender", "Aquieta Minh'alma", "Havana",
-		"Havana feat Young Thug", "Vai Malandra (part. MC Zaac, Maejor, Tropkillaz e DJ Yuri Martins)",
-		"Prioridade", "Trevo (Tu) (part. Tiago Iorc)", "Machika (part. Anitta y Jeon)",
-		"Trem Bala", "Moça do Espelho", "Safadômetro", "Eu Cuido de Ti",
-		"Too Good At Goodbyes", "Duro Igual Concreto", "Aquela Pessoa",
-		"Rap Lord (part. Jonas Bento)", "Contrato", "IDGAF", "De Quem É a Culpa?",
-		"Não Troco", "Quase", "Deus É Deus", "Anti-Amor", "Eu Era",
-		"Cerveja de Garrafa (Fumaça Que Eu Faço)", "Não Deixo Não", "Rockstar feat 21 Savage",
-		"New Rules", "Photograph", "Eu Juro", "Ninguém Explica Deus (part. Gabriela Rocha)",
-		"Lindo És", "Bengala e Crochê", "Pirata e Tesouro", "A Libertina",
-		"Pesadão (part. Marcelo Falcão)", "Aleluia (part. Michely Manuely)", "Eu Cuido de Ti",
-		"Oi", "Céu Azul", "Never Be The Same", "My Life Is Going On", "Imaturo",
-		"Gucci Gang", "Cuidado", "K.O.", "Échame La Culpa", "Échame La Culpa feat Luis Fonsi",
-		"Tem Café (part. MC Hariel)", "Raridade", "Te Vi Na Rua Ontem",
-		"Dona Maria (feat Jorge)", "Fica (part. Matheus e Kauan)", "9 Meses (Oração do Bebê)",
-		"Muleque de Vila", "A Vitória Chegou", "Ar Condicionado No 15", "Vida Loka Também Ama",
-		"Pegada Que Desgrama", "Transplante (part. Bruno & Marrone)", "Na Conta da Loucura",
-		"Tem Café (part. Gaab)", "Apelido Carinhoso", "Perfect Duet", "Perfect Duet feat Beyoncé",
-		"Coração de Aço", "Minha Morada", "Amar, Amei", "Regime Fechado", "O Escudo",
-		"Minha Namorada", "Quero Conhecer Jesus (O Meu Amado é o Mais Belo)", "Me Leva Pra Casa",
-		"Como é Que Faz? (part. Rob Nunes)", "The Scientist", "Bella Ciao",
-		"O Que Tiver Que Ser Vai Ser", "Corpo Sensual (part. Mateus Carrilho)", "Cor de Marte",
-		"Bom Rapaz (part. Jorge e Mateus)", "Vidinha de Balada", "Não Era Você", "Em Teus Braços", "De Trás Pra Frente",
-		"All Of Me", "Believer", "A Música Mais Triste do Ano", "Rabiola",
-		"Paraíso (part. Pabllo Vittar)", "Vem Pra Minha Vida",
+	// Get musics from the database
+	musicsInfo, err := a.repo.GetMusics("ALL", 0, 0)
+	if err != nil {
+		return sortMusicSlice{}
 	}
 
+	// Pre-allocate memory for the slice responsible to store the best returns
+	// based on the measured score.
 	musicNameSort := make(sortMusicSlice, bestReturns+1)
 	for i := 0; i < len(musicNameSort); i++ {
 		musicNameSort[i].Score = -100
@@ -55,21 +44,112 @@ func SearchMusic(title string, bestReturns int) sortMusicSlice {
 		return sortMusicSlice{}
 	}
 
-	for _, musicName := range dbMusic {
+	for _, musicName := range musicsInfo {
 
-		// Treat the music title name from the database to measure the score;
+		// Treat the music title name from the database to measure the score.
+		treatedMusicName, err := treatment.TreatString(musicName.Name)
+		if err != nil {
+			return []entity.MusicInfo{}
+		}
+
+		// Measure the score for the treated title based on the treated music
+		// from the database.
+		score, err := score.MeasureTotalScore(treatedTitle, treatedMusicName)
+		if err != nil {
+			return []entity.MusicInfo{}
+		}
+
+		// Save the music in the last position to see if it is in the field of
+		// the best returns.
+		musicNameSort[bestReturns].Name = musicName.Name
+		musicNameSort[bestReturns].Score = score
+
+		// fmt.Println("pre-sort:", musicNameSort)
+
+		// Sort the slice based on the descending order of the score and when the
+		// score is the same using the alphabetical order.
+		sort.Sort(musicNameSort)
+
+		// fmt.Println("pos-sort:", musicNameSort)
+
+		// fmt.Println("Score:", score)
+
+	}
+
+	// return the best returns based on the bestReturns threshold.
+	return musicNameSort[0:bestReturns]
+}
+
+func (a *Application) SearchMusic2(title string, bestReturns int) sortMusicSlice {
+
+	musicsInfo := []string{"Que Tiro Foi Esse", "Deixe-me Ir",
+		"Sobre Nós (Poesia Acústica #2)", "Apelido Carinhoso",
+		"Tô Com Moral No Céu", "Lugar Secreto", "Jó", "Perfect", "Fica Tranquilo",
+		"Capricorniana (Poesia Acústica #3)", "Amor da Sua Cama", "Nessas Horas",
+		"Downtown (part. J Balvin)", "Você Vai Entender", "Aquieta Minh'alma",
+		"Havana", "Havana feat Young Thug",
+		"Vai Malandra (part. MC Zaac, Maejor, Tropkillaz e DJ Yuri Martins)",
+		"Prioridade", "Trevo (Tu) (part. Tiago Iorc)",
+		"Machika (part. Anitta y Jeon)", "Trem Bala", "Moça do Espelho",
+		"Safadômetro", "Eu Cuido de Ti", "Too Good At Goodbyes",
+		"Duro Igual Concreto", "Aquela Pessoa", "Rap Lord (part. Jonas Bento)",
+		"Contrato", "IDGAF", "De Quem É a Culpa?", "Não Troco", "Quase",
+		"Deus É Deus", "Anti-Amor", "Eu Era",
+		"Cerveja de Garrafa (Fumaça Que Eu Faço)", "Não Deixo Não",
+		"Rockstar feat 21 Savage", "New Rules", "Photograph", "Eu Juro",
+		"Ninguém Explica Deus (part. Gabriela Rocha)",
+		"Lindo És", "Bengala e Crochê", "Pirata e Tesouro", "A Libertina",
+		"Pesadão (part. Marcelo Falcão)", "Aleluia (part. Michely Manuely)",
+		"Eu Cuido de Ti", "Oi", "Céu Azul", "Never Be The Same",
+		"My Life Is Going On", "Imaturo", "Gucci Gang", "Cuidado", "K.O.",
+		"Échame La Culpa", "Échame La Culpa feat Luis Fonsi",
+		"Tem Café (part. MC Hariel)", "Raridade", "Te Vi Na Rua Ontem",
+		"Dona Maria (feat Jorge)", "Fica (part. Matheus e Kauan)",
+		"9 Meses (Oração do Bebê)", "Muleque de Vila", "A Vitória Chegou",
+		"Ar Condicionado No 15", "Vida Loka Também Ama", "Pegada Que Desgrama",
+		"Transplante (part. Bruno & Marrone)", "Na Conta da Loucura",
+		"Tem Café (part. Gaab)", "Apelido Carinhoso", "Perfect Duet",
+		"Perfect Duet feat Beyoncé", "Coração de Aço", "Minha Morada", "Amar, Amei",
+		"Regime Fechado", "O Escudo", "Minha Namorada",
+		"Quero Conhecer Jesus (O Meu Amado é o Mais Belo)", "Me Leva Pra Casa",
+		"Como é Que Faz? (part. Rob Nunes)", "The Scientist", "Bella Ciao",
+		"O Que Tiver Que Ser Vai Ser", "Corpo Sensual (part. Mateus Carrilho)",
+		"Cor de Marte", "Bom Rapaz (part. Jorge e Mateus)", "Vidinha de Balada",
+		"Não Era Você", "Em Teus Braços", "De Trás Pra Frente", "All Of Me",
+		"Believer", "A Música Mais Triste do Ano", "Rabiola",
+		"Paraíso (part. Pabllo Vittar)", "Vem Pra Minha Vida",
+	}
+
+	// Pre-allocate memory for the slice responsible to store the best returns
+	// based on the measured score.
+	musicNameSort := make(sortMusicSlice, bestReturns+1)
+	for i := 0; i < len(musicNameSort); i++ {
+		musicNameSort[i].Score = -100
+	}
+
+	// Treat music title for search
+	treatedTitle, err := treatment.TreatString(title)
+	if err != nil {
+		return sortMusicSlice{}
+	}
+
+	for _, musicName := range musicsInfo {
+
+		// Treat the music title name from the database to measure the score.
 		treatedMusicName, err := treatment.TreatString(musicName)
 		if err != nil {
 			return []entity.MusicInfo{}
 		}
 
 		// Measure the score for the treated title based on the treated music
-		// name obtained from the database.
+		// from the database.
 		score, err := score.MeasureTotalScore(treatedTitle, treatedMusicName)
 		if err != nil {
 			return []entity.MusicInfo{}
 		}
 
+		// Save the music in the last position to see if it is in the field of
+		// the best returns.
 		musicNameSort[bestReturns].Name = musicName
 		musicNameSort[bestReturns].Score = score
 
@@ -85,7 +165,8 @@ func SearchMusic(title string, bestReturns int) sortMusicSlice {
 
 	}
 
-	return musicNameSort[0:10]
+	// return the best returns based on the bestReturns threshold.
+	return musicNameSort[0:bestReturns]
 }
 
 // Use the optimum sorting algorithm available on Golang. It uses an algorithm that
