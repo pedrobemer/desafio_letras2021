@@ -1,11 +1,23 @@
 package score
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func BenchmarkMeasureTotalScore(b *testing.B) {
+	s := []string{
+		"Havana feat Young Thug",
+	}
+
+	for i := 0; i < b.N; i++ {
+		for _, str := range s {
+			MeasureTotalScore(str, str)
+		}
+	}
+
+}
 
 func TestMeasureWordScore(t *testing.T) {
 
@@ -18,14 +30,14 @@ func TestMeasureWordScore(t *testing.T) {
 
 	tests := []test{
 		{
-			firstWord:     "testGreater",
-			secondWord:    "test",
-			expectedScore: 0,
-			expectedError: errors.New("firstWord is greater than secondWord"),
-		},
-		{
 			firstWord:     "Havana",
 			secondWord:    "Cavunol",
+			expectedScore: 3,
+			expectedError: nil,
+		},
+		{
+			firstWord:     "Cavunol",
+			secondWord:    "Havana",
 			expectedScore: 3,
 			expectedError: nil,
 		},
