@@ -21,14 +21,31 @@ func NewMusicsPostgres(db PgxIface) *MusicsPostgres {
 func (m *MusicsPostgres) GetMusics(searchType string, limit int, offset int) (
 	[]entity.Musics, error) {
 	var musics []entity.Musics
+	var query string
+	var err error
 
-	query := `
-	SELECT
-		id, created_at, updated_at, title
-	FROM musics;
-	`
+	if searchType == "PAGINATION" {
+		query = `
+		SELECT
+			id, created_at, updated_at, title
+		FROM musics
+		ORDER_BY updated_at DESC
+		LIMIT $1
+		OFFSET $2;
+		`
+		err = pgxscan.Select(context.Background(), m.dbpool, &musics, query,
+			limit, offset)
 
-	err := pgxscan.Select(context.Background(), m.dbpool, &musics, query)
+	} else {
+		query = `
+		SELECT
+			id, created_at, updated_at, title
+		FROM musics;
+		`
+		err = pgxscan.Select(context.Background(), m.dbpool, &musics, query)
+
+	}
+
 	if err != nil {
 		return nil, err
 	}
